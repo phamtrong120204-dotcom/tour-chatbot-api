@@ -1,3 +1,6 @@
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
 export default async function handler(req, res) {
   // ===== CORS =====
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -55,5 +58,8 @@ const reply =
 
 return res.status(200).json({ reply });
 
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 }
