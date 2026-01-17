@@ -1,7 +1,14 @@
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
 module.exports = async function handler(req, res) {
+  // ===== CORS =====
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
@@ -12,24 +19,24 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { message } = req.body || {};
-    if (!message) {
-      return res.status(400).json({ error: "Missing message" });
+    const { messages } = req.body || {};
+
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: "Missing messages array" });
     }
 
-  const SYSTEM = `
+    const SYSTEM = `
 Bạn là nhân viên tư vấn tour du lịch chuyên nghiệp.
 
 NGUYÊN TẮC BẮT BUỘC:
 - Nếu khách đã cung cấp NGÀY ĐI → KHÔNG hỏi lại ngày đi.
 - Nếu khách đã cung cấp SỐ NGƯỜI → KHÔNG hỏi lại số người.
-- Chỉ hỏi những thông tin CÒN THIẾU.
-- Khi đã có đủ ngày đi + số người → TƯ VẤN GIÁ và XÁC NHẬN ĐẶT TOUR.
-- Tuyệt đối không hỏi lặp thông tin khách đã nói.
-- Không hỏi chung chung.
+- Chỉ hỏi thông tin CÒN THIẾU.
+- Khi đã đủ ngày đi + số người → TƯ VẤN GIÁ và XÁC NHẬN ĐẶT TOUR.
+- Tuyệt đối không hỏi lặp.
+- Trả lời như nhân viên tư vấn thật, không máy móc.
 
 PHONG CÁCH:
-- Giống nhân viên tư vấn tour thật.
 - Ngắn gọn, rõ ràng, lịch sự.
 - Ưu tiên chốt thông tin.
 `;
@@ -40,16 +47,15 @@ PHONG CÁCH:
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-        input:
-          SYSTEM +
-          "\n\nKIẾN THỨC:\n" +
-          KNOWLEDGE +
-          "\n\nKHÁCH HỎI:\n" +
-          message,
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "system", content: "KIẾN THỨC:\n" + KNOWLEDGE },
+          ...messages,
+        ],
       }),
     });
 
@@ -64,7 +70,7 @@ PHONG CÁCH:
     const reply =
       data.output_text ||
       data.output?.[0]?.content?.[0]?.text ||
-      "Không có phản hồi";
+      "Xin lỗi, mình chưa có phản hồi phù hợp.";
 
     return res.status(200).json({ reply });
 
