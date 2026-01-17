@@ -40,12 +40,9 @@ const response = await fetch("https://api.openai.com/v1/responses", {
   },
   body: JSON.stringify({
     model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-    input:
-      SYSTEM +
-      "\n\nKIẾN THỨC:\n" +
-      KNOWLEDGE +
-      "\n\nKHÁCH HỎI: " +
-      message,
+    input: SYSTEM +
+      "\n\nKIẾN THỨC:\n" + KNOWLEDGE +
+      "\n\nKHÁCH HỎI:\n" + message,
   }),
 });
 
@@ -57,5 +54,6 @@ const reply =
   "Không có phản hồi";
 
 return res.status(200).json({ reply });
+
   }
 }
