@@ -1,47 +1,48 @@
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
-
 module.exports = async function handler(req, res) {
   // ===== CORS =====
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  if (req.method !== "POST") {
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
-  }
 
   try {
-    const { messages } = req.body || {};
-
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: "Missing messages array" });
-    }
+    const { message } = req.body || {};
+    if (!message)
+      return res.status(400).json({ error: "Missing message" });
 
     const SYSTEM = `
-Bạn là nhân viên tư vấn tour du lịch chuyên nghiệp.
+Bạn là PHẠM TRỌNG – nhân viên tư vấn tour du lịch chuyên nghiệp, thân thiện, nói chuyện tự nhiên như người thật.
 
-NGUYÊN TẮC BẮT BUỘC:
-- Nếu khách đã cung cấp NGÀY ĐI → KHÔNG hỏi lại ngày đi.
-- Nếu khách đã cung cấp SỐ NGƯỜI → KHÔNG hỏi lại số người.
-- Chỉ hỏi thông tin CÒN THIẾU.
-- Khi đã đủ ngày đi + số người → TƯ VẤN GIÁ và XÁC NHẬN ĐẶT TOUR.
-- Tuyệt đối không hỏi lặp.
-- Trả lời như nhân viên tư vấn thật, không máy móc.
-- Nếu khách chỉ chào (chào, hello, hi):
-  → Trả lời chào lại + hỏi tour + ngày đi + số người
-- Nếu khách nói “tôi muốn đặt tour”:
-  → Hỏi tour nào + ngày đi + số người
-PHONG CÁCH:
-- Ngắn gọn, rõ ràng, lịch sự.
-- Ưu tiên chốt thông tin.
+=====================
+NGUYÊN TẮC BẮT BUỘC
+=====================
+1. KHÔNG hỏi lặp thông tin khách đã cung cấp.
+2. Nếu khách nói NGÀY → ghi nhớ ngày.
+3. Nếu khách nói SỐ NGƯỜI → ghi nhớ số người.
+4. Nếu đã đủ NGÀY + SỐ NGƯỜI → BÁO GIÁ + GỢI Ý CHỐT TOUR.
+5. Nếu khách hỏi ngắn (vd: "giá", "ok", "đặt tour") → tự hiểu ngữ cảnh, KHÔNG trả lời máy móc.
+6. Luôn hỏi CHỈ 1 thông tin còn thiếu, không hỏi nhiều câu cùng lúc.
+7. Khi gần chốt → xin SĐT một cách tự nhiên, lịch sự.
+
+=====================
+PHONG CÁCH
+=====================
+- Xưng: mình – anh/chị
+- Giọng sale thật, lịch sự, thân thiện
+- Không dùng thuật ngữ AI
+- Không nói "tôi là chatbot"
+- Câu ngắn, dễ đọc trên điện thoại
+
+=====================
+MẪU DẪN DẮT
+=====================
+• Nếu khách hỏi giá → hỏi thêm ngày hoặc số người (nếu thiếu)
+• Nếu khách nói "đặt tour" → hỏi ngày đi trước
+• Nếu khách đã đủ thông tin → báo giá + hỏi xác nhận
+• Sau khi báo giá → xin SĐT để giữ chỗ
 `;
 
     const KNOWLEDGE = process.env.KNOWLEDGE_TEXT || "";
@@ -54,18 +55,21 @@ PHONG CÁCH:
       },
       body: JSON.stringify({
         model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "system", content: "KIẾN THỨC:\n" + KNOWLEDGE },
-          ...messages,
-        ],
+        input:
+          SYSTEM +
+          "\n\n=== THÔNG TIN TOUR ===\n" +
+          KNOWLEDGE +
+          "\n\n=== KHÁCH HỎI ===\n" +
+          message,
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text();
       console.error("OpenAI error:", errText);
-      return res.status(500).json({ error: "OpenAI API error" });
+      return res
+        .status(500)
+        .json({ error: "OpenAI API error", detail: errText });
     }
 
     const data = await response.json();
@@ -73,12 +77,11 @@ PHONG CÁCH:
     const reply =
       data.output_text ||
       data.output?.[0]?.content?.[0]?.text ||
-      "Xin lỗi, mình chưa có phản hồi phù hợp.";
+      "Mình đang kiểm tra thông tin, anh/chị chờ mình một chút nhé.";
 
     return res.status(200).json({ reply });
-
   } catch (err) {
     console.error("SERVER ERROR:", err);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Server error", detail: String(err) });
   }
 };
