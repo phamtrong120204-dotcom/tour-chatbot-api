@@ -32,29 +32,30 @@ Giọng thân thiện, ngắn gọn, rõ ràng.
 
     const KNOWLEDGE = process.env.KNOWLEDGE_TEXT || "";
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-        messages: [
-          { role: "system", content: SYSTEM + "\n\nKNOWLEDGE:\n" + KNOWLEDGE },
-          { role: "user", content: message },
-        ],
-        temperature: 0.2,
-      }),
-    });
+const response = await fetch("https://api.openai.com/v1/responses", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+  },
+  body: JSON.stringify({
+    model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
+    input:
+      SYSTEM +
+      "\n\nKIẾN THỨC:\n" +
+      KNOWLEDGE +
+      "\n\nKHÁCH HỎI: " +
+      message,
+  }),
+});
 
-    const data = await response.json();
+const data = await response.json();
 
-    return res.status(200).json({
-      reply: data.choices?.[0]?.message?.content || "Không có phản hồi",
-    });
-  } catch (err) {
-    console.error("API ERROR:", err);
-    return res.status(500).json({ error: "Server error" });
+const reply =
+  data.output_text ||
+  data.output?.[0]?.content?.[0]?.text ||
+  "Không có phản hồi";
+
+return res.status(200).json({ reply });
   }
 }
