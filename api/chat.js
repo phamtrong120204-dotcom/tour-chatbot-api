@@ -1,16 +1,8 @@
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
-
-export default async function handler(req, res) {
-  // ===== CORS =====
+module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  // ✅ BẮT BUỘC xử lý OPTIONS (preflight)
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -66,8 +58,9 @@ Giọng thân thiện, ngắn gọn, rõ ràng.
       "Không có phản hồi";
 
     return res.status(200).json({ reply });
-      } catch (err) {
+
+  } catch (err) {
     console.error("SERVER ERROR:", err);
     return res.status(500).json({ error: "Server error" });
   }
-}
+};
