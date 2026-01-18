@@ -4,62 +4,107 @@ module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  if (req.method !== "POST") {
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
-  }
 
   try {
     const { message, history = [] } = req.body || {};
-
-    if (!message || typeof message !== "string") {
+    if (!message) {
       return res.status(400).json({ error: "Missing message" });
     }
 
-    const cleanMessage = message.trim();
-    const lowerMessage = cleanMessage.toLowerCase();
+    const text = message.toLowerCase().trim();
 
-    /* =====================================================
-       ✅ CHẶN LỖI LỜI CHÀO NGAY TỪ SERVER (QUAN TRỌNG)
-    ===================================================== */
-    if (["chào", "hi", "hello", "alo"].includes(lowerMessage)) {
+    /* =================================================
+       1️⃣ HUỶ TOUR – ƯU TIÊN CAO NHẤT (KHÔNG GỌI AI)
+    ================================================= */
+    const cancelKeywords = [
+      "huỷ",
+      "hủy",
+      "không đi",
+      "không đi nữa",
+      "bỏ tour",
+      "cancel"
+    ];
+
+    if (cancelKeywords.some(k => text.includes(k))) {
       return res.status(200).json({
         reply:
-          "Chào anh/chị 👋 Anh/chị cho mình biết ngày đi và số người để mình tư vấn chính xác nhé."
+          "Dạ mình đã ghi nhận yêu cầu huỷ tour của anh/chị ạ. 🙏\n\n" +
+          "Vì trường hợp huỷ tour cần kiểm tra chính sách và thời điểm cụ thể, " +
+          "anh/chị vui lòng liên hệ trực tiếp để bên mình hỗ trợ nhanh nhất nhé:\n\n" +
+          "👉 Zalo: https://zalo.me/0774546748\n" +
+          "👉 Facebook: https://www.facebook.com/tenfacebookcuaban\n\n" +
+          "Bên mình sẽ hỗ trợ chi tiết cho anh/chị ngay khi nhận được thông tin ạ."
       });
     }
 
-    /* ================= SYSTEM PROMPT ================= */
+    /* =================================================
+       2️⃣ LỜI CHÀO NGẮN (KHÔNG GỌI AI)
+    ================================================= */
+    const greetings = ["chào", "hi", "hello", "alo"];
+    if (greetings.includes(text)) {
+      return res.status(200).json({
+        reply:
+          "Chào anh/chị 👋\n" +
+          "Anh/chị cho mình biết ngày đi và số người để mình tư vấn chính xác nhé."
+      });
+    }
+
+    /* =================================================
+       3️⃣ NHẬN DIỆN KHÁCH ĐÃ CÓ NGÀY + SỐ NGƯỜI
+    ================================================= */
+    const hasDate =
+      /\d{1,2}[\/\-]\d{1,2}/.test(text) || text.includes("ngày");
+    const hasPeople =
+      /(\d+)\s*(người|khách)/.test(text);
+
+    if (hasDate && hasPeople) {
+      return res.status(200).json({
+        reply:
+          "Dạ mình đã nắm được thông tin rồi ạ 👍\n" +
+          "Anh/chị cho mình xin số điện thoại để mình báo giá chi tiết và giữ chỗ giúp anh/chị nhé."
+      });
+    }
+
+    /* =================================================
+       4️⃣ KHÁCH NÓI ĐẶT / OK / XÁC NHẬN
+    ================================================= */
+    const bookingWords = ["đặt", "ok", "chốt", "xác nhận"];
+    if (bookingWords.some(w => text.includes(w))) {
+      return res.status(200).json({
+        reply:
+          "Dạ anh/chị cho mình xin số điện thoại để mình giữ chỗ và gửi thông tin chi tiết cho mình nhé."
+      });
+    }
+
+    /* =================================================
+       5️⃣ SYSTEM PROMPT – CHỈ DÙNG CHO TƯ VẤN
+    ================================================= */
     const SYSTEM = `
-Bạn là PHẠM TRỌNG – nhân viên tư vấn tour du lịch chuyên nghiệp, nói chuyện như người thật.
+Bạn là PHẠM TRỌNG – nhân viên tư vấn tour du lịch chuyên nghiệp.
 
-================ NGUYÊN TẮC BẮT BUỘC ================
+NGUYÊN TẮC:
 - KHÔNG hỏi lại thông tin khách đã cung cấp
-- Nếu khách đã nói NGÀY → coi là ĐÃ CÓ NGÀY
-- Nếu khách đã nói SỐ NGƯỜI → coi là ĐÃ CÓ SỐ NGƯỜI
-- Nếu đã đủ NGÀY + SỐ NGƯỜI → PHẢI báo giá và gợi ý chốt tour
-- Mỗi lượt CHỈ hỏi 1 thông tin còn thiếu
-- Nếu khách nói ngắn ("giá", "ok", "đặt tour") → hiểu theo NGỮ CẢNH
-- Gần chốt → xin SĐT nhẹ nhàng, lịch sự
-- TUYỆT ĐỐI không nói "mình kiểm tra", "để mình xem"
-- TUYỆT ĐỐI không nói mình là AI / hệ thống
+- Nếu đã có NGÀY → không hỏi lại ngày
+- Nếu đã có SỐ NGƯỜI → không hỏi lại số người
+- Khi đủ thông tin → báo giá + gợi ý chốt tour
+- Mỗi lượt chỉ hỏi 1 thông tin còn thiếu
+- TUYỆT ĐỐI không nói "mình kiểm tra", "đợi mình xem"
+- Không nhắc đến AI / hệ thống
 
-================ PHONG CÁCH ================
+PHONG CÁCH:
 - Xưng: mình – anh/chị
-- Câu ngắn, dễ đọc trên điện thoại
-- Giống sale tư vấn thật
+- Ngắn gọn, lịch sự, giống sale thật
 `;
 
     const KNOWLEDGE = process.env.KNOWLEDGE_TEXT || "";
 
-    /* ================= RÚT GỌN LỊCH SỬ ================= */
-    const recentHistory = Array.isArray(history)
-      ? history.slice(-8)
-      : [];
-
+    /* =================================================
+       6️⃣ RÚT GỌN LỊCH SỬ
+    ================================================= */
+    const recentHistory = history.slice(-6);
     const historyText = recentHistory
       .map(h =>
         h.role === "user"
@@ -68,7 +113,9 @@ Bạn là PHẠM TRỌNG – nhân viên tư vấn tour du lịch chuyên nghi�
       )
       .join("\n");
 
-    /* ================= CALL OPENAI ================= */
+    /* =================================================
+       7️⃣ GỌI OPENAI (CHỈ KHI CẦN TƯ VẤN)
+    ================================================= */
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -83,11 +130,11 @@ ${SYSTEM}
 ===== THÔNG TIN TOUR =====
 ${KNOWLEDGE}
 
-===== LỊCH SỬ HỘI THOẠI =====
+===== LỊCH SỬ =====
 ${historyText}
 
 ===== KHÁCH VỪA NÓI =====
-${cleanMessage}
+${message}
         `,
       }),
     });
@@ -103,7 +150,7 @@ ${cleanMessage}
     const reply =
       data.output_text ||
       data.output?.[0]?.content?.[0]?.text ||
-      "Anh/chị cho mình xin thêm thông tin để mình tư vấn chính xác nhé.";
+      "Anh/chị cho mình thêm một chút thông tin để mình tư vấn chính xác nhé.";
 
     return res.status(200).json({ reply });
 
