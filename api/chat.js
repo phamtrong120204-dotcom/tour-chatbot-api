@@ -35,7 +35,7 @@ module.exports = async function handler(req, res) {
           "Vì trường hợp huỷ tour cần kiểm tra chính sách và thời điểm cụ thể, " +
           "anh/chị vui lòng liên hệ trực tiếp để bên mình hỗ trợ nhanh nhất nhé:\n\n" +
           "👉 Zalo: https://zalo.me/0774546748\n" +
-          "👉 Facebook: https://www.facebook.com/tenfacebookcuaban\n\n" +
+          "👉 Facebook: https://www.facebook.com/pm.trogn\n\n" +
           "Bên mình sẽ hỗ trợ chi tiết cho anh/chị ngay khi nhận được thông tin ạ."
       });
     }
