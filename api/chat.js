@@ -15,26 +15,36 @@ module.exports = async function handler(req, res) {
   try {
     const { message, history = [] } = req.body || {};
 
-    if (!message) {
+    if (!message || typeof message !== "string") {
       return res.status(400).json({ error: "Missing message" });
+    }
+
+    const cleanMessage = message.trim();
+    const lowerMessage = cleanMessage.toLowerCase();
+
+    /* =====================================================
+       ✅ CHẶN LỖI LỜI CHÀO NGAY TỪ SERVER (QUAN TRỌNG)
+    ===================================================== */
+    if (["chào", "hi", "hello", "alo"].includes(lowerMessage)) {
+      return res.status(200).json({
+        reply:
+          "Chào anh/chị 👋 Anh/chị cho mình biết ngày đi và số người để mình tư vấn chính xác nhé."
+      });
     }
 
     /* ================= SYSTEM PROMPT ================= */
     const SYSTEM = `
-Bạn là PHẠM TRỌNG – nhân viên tư vấn tour du lịch chuyên nghiệp.
-XỬ LÝ LỜI CHÀO:
-- Nếu khách chỉ nói: "chào", "hi", "hello", "alo"
-→ PHẢI chào lại lịch sự
-→ PHẢI hỏi ngay ngày đi & số người
-→ TUYỆT ĐỐI KHÔNG nói "mình kiểm tra", "để mình xem"
+Bạn là PHẠM TRỌNG – nhân viên tư vấn tour du lịch chuyên nghiệp, nói chuyện như người thật.
+
 ================ NGUYÊN TẮC BẮT BUỘC ================
 - KHÔNG hỏi lại thông tin khách đã cung cấp
 - Nếu khách đã nói NGÀY → coi là ĐÃ CÓ NGÀY
 - Nếu khách đã nói SỐ NGƯỜI → coi là ĐÃ CÓ SỐ NGƯỜI
-- Nếu đã đủ NGÀY + SỐ NGƯỜI → PHẢI BÁO GIÁ + GỢI Ý CHỐT TOUR
-- Mỗi lượt chỉ hỏi 1 thông tin còn thiếu
-- Nếu khách nói ngắn ("giá", "ok", "đặt tour") → PHẢI hiểu theo NGỮ CẢNH
-- Gần chốt thì xin SĐT nhẹ nhàng, lịch sự
+- Nếu đã đủ NGÀY + SỐ NGƯỜI → PHẢI báo giá và gợi ý chốt tour
+- Mỗi lượt CHỈ hỏi 1 thông tin còn thiếu
+- Nếu khách nói ngắn ("giá", "ok", "đặt tour") → hiểu theo NGỮ CẢNH
+- Gần chốt → xin SĐT nhẹ nhàng, lịch sự
+- TUYỆT ĐỐI không nói "mình kiểm tra", "để mình xem"
 - TUYỆT ĐỐI không nói mình là AI / hệ thống
 
 ================ PHONG CÁCH ================
@@ -46,7 +56,9 @@ XỬ LÝ LỜI CHÀO:
     const KNOWLEDGE = process.env.KNOWLEDGE_TEXT || "";
 
     /* ================= RÚT GỌN LỊCH SỬ ================= */
-    const recentHistory = history.slice(-8);
+    const recentHistory = Array.isArray(history)
+      ? history.slice(-8)
+      : [];
 
     const historyText = recentHistory
       .map(h =>
@@ -75,7 +87,7 @@ ${KNOWLEDGE}
 ${historyText}
 
 ===== KHÁCH VỪA NÓI =====
-${message}
+${cleanMessage}
         `,
       }),
     });
@@ -91,7 +103,7 @@ ${message}
     const reply =
       data.output_text ||
       data.output?.[0]?.content?.[0]?.text ||
-      "Mình đang kiểm tra thông tin cho anh/chị, chờ mình một chút nhé.";
+      "Anh/chị cho mình xin thêm thông tin để mình tư vấn chính xác nhé.";
 
     return res.status(200).json({ reply });
 
