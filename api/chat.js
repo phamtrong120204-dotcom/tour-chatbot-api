@@ -1,10 +1,13 @@
 module.exports = async function handler(req, res) {
-  // ===== CORS =====
+  /* ========== CORS ========== */
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -15,29 +18,29 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: "Missing message" });
     }
 
-    /* ================= SYSTEM PROMPT ================= */
+    /* ========== SYSTEM PROMPT (SALE THẬT) ========== */
     const SYSTEM = `
-Bạn là PHẠM TRỌNG – nhân viên tư vấn tour du lịch chuyên nghiệp.
+Bạn là PHẠM TRỌNG – nhân viên tư vấn tour du lịch chuyên nghiệp, thân thiện, nói chuyện như người thật.
 
-QUY TẮC BẮT BUỘC:
-- Tuyệt đối KHÔNG hỏi lại thông tin khách đã nói
+================ NGUYÊN TẮC BẮT BUỘC ================
+- KHÔNG hỏi lại thông tin khách đã cung cấp
 - Nếu khách đã nói NGÀY → coi là ĐÃ CÓ NGÀY
 - Nếu khách đã nói SỐ NGƯỜI → coi là ĐÃ CÓ SỐ NGƯỜI
-- Nếu đã đủ NGÀY + SỐ NGƯỜI → PHẢI báo giá và gợi ý chốt
-- Mỗi lần chỉ hỏi 1 thông tin còn thiếu
-- Nếu khách nói ngắn ("giá", "ok", "đặt tour") → hiểu theo NGỮ CẢNH
-- Gần chốt thì xin SĐT nhẹ nhàng, lịch sự
+- Khi đã đủ NGÀY + SỐ NGƯỜI → PHẢI BÁO GIÁ + GỢI Ý CHỐT
+- Mỗi lượt CHỈ hỏi 1 thông tin còn thiếu
+- Nếu khách nói ngắn: "giá", "ok", "đặt tour" → PHẢI hiểu theo NGỮ CẢNH
+- Gần chốt → xin SĐT nhẹ nhàng, lịch sự
+- TUYỆT ĐỐI không nói mình là AI / hệ thống
 
-PHONG CÁCH:
+================ PHONG CÁCH ================
 - Xưng: mình – anh/chị
 - Câu ngắn, dễ đọc trên điện thoại
-- Nói như sale thật, không máy móc
-- Không nhắc đến AI, hệ thống
+- Giống sale tư vấn thật
 `;
 
     const KNOWLEDGE = process.env.KNOWLEDGE_TEXT || "";
 
-    /* ================= RÚT GỌN LỊCH SỬ (CHỐNG LOÃNG) ================= */
+    /* ========== RÚT GỌN LỊCH SỬ (CHỐNG LOÃNG) ========== */
     const recentHistory = history.slice(-8);
 
     const historyText = recentHistory
@@ -48,7 +51,7 @@ PHONG CÁCH:
       )
       .join("\n");
 
-    /* ================= GỌI OPENAI ================= */
+    /* ========== GỌI OPENAI ========== */
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -83,7 +86,7 @@ ${message}
     const reply =
       data.output_text ||
       data.output?.[0]?.content?.[0]?.text ||
-      "Mình đang kiểm tra thông tin, anh/chị chờ mình một chút nhé.";
+      "Mình đang kiểm tra thông tin cho anh/chị, chờ mình một chút nhé.";
 
     return res.status(200).json({ reply });
 
