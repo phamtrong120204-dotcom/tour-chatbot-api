@@ -37,7 +37,23 @@ NGUYÊN TẮC LÀM VIỆC:
 - KHÔNG huỷ tour
 - Khi khách muốn đặt/huỷ → giải thích quy trình & hướng dẫn liên hệ
 `;
-
+/* =================================================
+   0️⃣ INTENT: CHÀO HỎI / MỞ ĐẦU
+================================================= */
+const greetingWords = ["chào", "hi", "hello", "alo", "xin chào"];
+if (greetingWords.includes(text)) {
+  return res.json({
+    reply:
+      "Chào anh/chị 👋\n\n" +
+      "Mình có thể hỗ trợ anh/chị các thông tin sau:\n" +
+      "• Giá tour Rừng Dừa Bảy Mẫu\n" +
+      "• Cách tính số thuyền theo số người\n" +
+      "• Quy trình đặt tour\n" +
+      "• Quy trình huỷ / đổi lịch\n" +
+      "• Chính sách bảo mật\n\n" +
+      "👉 Anh/chị cứ đặt câu hỏi, mình tư vấn chi tiết giúp nhé 😊"
+  });
+}
     /* =================================================
        1️⃣ INTENT: HUỶ / ĐỔI TOUR (KHÔNG XỬ LÝ TRỰC TIẾP)
     ================================================= */
