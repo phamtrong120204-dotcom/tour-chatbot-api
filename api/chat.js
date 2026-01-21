@@ -14,65 +14,83 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: "Missing message" });
     }
 
-    const text = message.toLowerCase().trim();
+    const text = message.toLowerCase();
 
     /* ===============================
-       1️⃣ HUỶ TOUR – ƯU TIÊN CAO NHẤT
+       1️⃣ CHÍNH SÁCH BẢO MẬT
     =============================== */
-    const cancelKeywords = ["huỷ", "hủy", "cancel", "không đi", "bỏ tour"];
-    if (cancelKeywords.some(k => text.includes(k))) {
+    if (text.includes("bảo mật")) {
       return res.json({
         reply:
-          "Dạ mình xin phép thông tin rõ ạ 🙏\n\n" +
-          "🤖 Đây là chatbot tư vấn tự động, không xử lý huỷ tour trực tiếp.\n\n" +
-          "👉 Để huỷ tour hoặc thay đổi lịch, anh/chị vui lòng liên hệ trực tiếp:\n" +
+          "🔐 CHÍNH SÁCH BẢO MẬT THÔNG TIN\n\n" +
+          "• Thông tin khách hàng chỉ dùng để tư vấn và hỗ trợ dịch vụ tour.\n" +
+          "• Không chia sẻ cho bên thứ ba khi chưa có sự đồng ý.\n" +
+          "• Dữ liệu được bảo mật theo quy định hiện hành.\n\n" +
+          "Anh/chị có thể yên tâm khi liên hệ trực tiếp với bên mình ạ."
+      });
+    }
+
+    /* ===============================
+       2️⃣ QUY TRÌNH ĐẶT TOUR
+    =============================== */
+    if (text.includes("đặt")) {
+      return res.json({
+        reply:
+          "📌 QUY TRÌNH ĐẶT TOUR RỪNG DỪA BẢY MẪU\n\n" +
+          "Bước 1️⃣: Liên hệ Zalo hoặc Facebook của bên mình\n" +
+          "Bước 2️⃣: Cung cấp ngày đi & số lượng khách\n" +
+          "Bước 3️⃣: Nhân viên xác nhận giá & lịch trống\n" +
+          "Bước 4️⃣: Chốt tour và xác nhận bằng tin nhắn\n\n" +
+          "❗ Chatbot không có chức năng đặt tour.\n\n" +
+          "👉 Liên hệ trực tiếp tại:\n" +
           "📞 Zalo: https://zalo.me/0774546748\n" +
-          "📘 Facebook: https://www.facebook.com/pm.trogn\n\n" +
-          "Bên mình sẽ hỗ trợ nhanh nhất cho anh/chị ạ."
+          "📘 Facebook: https://www.facebook.com/pm.trogn"
       });
     }
 
     /* ===============================
-       2️⃣ LỜI CHÀO
+       3️⃣ QUY TRÌNH HUỶ TOUR
     =============================== */
-    if (["chào", "hi", "hello", "alo"].includes(text)) {
+    if (text.includes("huỷ") || text.includes("hủy") || text.includes("cancel")) {
       return res.json({
         reply:
-          "Chào anh/chị 👋\n" +
-          "Mình là chatbot tư vấn tour Rừng Dừa Bảy Mẫu.\n" +
-          "Anh/chị cho mình biết ngày đi và số người** để mình tư vấn chi tiết nhé."
-      });
-    }
-
-    /* ===============================
-       3️⃣ KHÁCH MUỐN ĐẶT TOUR
-    =============================== */
-    const bookingWords = ["đặt", "muốn đi", "chốt", "ok", "xác nhận"];
-    if (bookingWords.some(w => text.includes(w))) {
-      return res.json({
-        reply:
-          "Dạ mình xin thông tin rõ với anh/chị ạ 🙏\n\n" +
-          "🤖 Đây là chatbot tư vấn, chỉ hỗ trợ:\n" +
-          "• Thông tin tour\n• Giá tham khảo\n• Chính sách đặt & huỷ\n• Chính sách bảo mật\n\n" +
-          "❗ Bot KHÔNG có chức năng đặt tour hoặc giữ chỗ.\n\n" +
-          "👉 Để đặt tour chính thức, anh/chị vui lòng:\n" +
-          "🔹 Điền form đăng ký trên website\n" +
-          "🔹 Hoặc liên hệ trực tiếp:\n" +
+          "📌 QUY TRÌNH HUỶ / ĐỔI LỊCH TOUR\n\n" +
+          "• Thông báo huỷ hoặc đổi lịch trước ngày đi ít nhất 24h.\n" +
+          "• Một số trường hợp sát ngày sẽ áp dụng phí theo chính sách.\n" +
+          "• Việc huỷ tour cần xác nhận trực tiếp với nhân viên.\n\n" +
+          "❗ Chatbot không xử lý huỷ tour trực tiếp.\n\n" +
+          "👉 Vui lòng liên hệ:\n" +
           "📞 Zalo: https://zalo.me/0774546748\n" +
-          "📘 Facebook: https://www.facebook.com/pm.trogn\n\n" +
-          "Bên mình sẽ xác nhận và hỗ trợ nhanh nhất cho anh/chị 🌴"
+          "📘 Facebook: https://www.facebook.com/pm.trogn"
       });
     }
 
     /* ===============================
-       4️⃣ MẶC ĐỊNH – TƯ VẤN CHUNG
+       4️⃣ GIÁ TOUR THAM KHẢO
+    =============================== */
+    if (text.includes("giá")) {
+      return res.json({
+        reply:
+          "💰 GIÁ TOUR RỪNG DỪA BẢY MẪU (THAM KHẢO)\n\n" +
+          "• Ngày thường: từ 130.000đ/thuyền (2 người lớn)\n" +
+          "• Cuối tuần / lễ: giá có thể thay đổi\n\n" +
+          "👉 Giá chính xác sẽ được nhân viên xác nhận khi liên hệ trực tiếp."
+      });
+    }
+
+    /* ===============================
+       5️⃣ MẶC ĐỊNH – GIỚI THIỆU
     =============================== */
     return res.json({
       reply:
-        "Dạ mình là chatbot tư vấn tour Rừng Dừa Bảy Mẫu 🌴\n\n" +
-        "Anh/chị có thể hỏi mình về:\n" +
-        "• Giá tour\n• Lịch trình\n• Thời gian tham quan\n• Chính sách đặt & huỷ\n• Chính sách bảo mật\n\n" +
-        "👉 Nếu cần đặt hoặc huỷ tour, vui lòng liên hệ trực tiếp qua Zalo hoặc Facebook để được hỗ trợ nhanh nhất ạ."
+        "🤖 Mình là chatbot tư vấn tour Rừng Dừa Bảy Mẫu 🌴\n\n" +
+        "Mình có thể hỗ trợ anh/chị:\n" +
+        "• Thông tin tour\n" +
+        "• Giá tham khảo\n" +
+        "• Quy trình đặt & huỷ tour\n" +
+        "• Chính sách bảo mật\n\n" +
+        "❗ Chatbot không nhận đặt hoặc huỷ tour trực tiếp.\n" +
+        "👉 Anh/chị có thể hỏi mình về quy trình hoặc chính sách nhé."
     });
 
   } catch (err) {
