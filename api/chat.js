@@ -24,7 +24,7 @@ module.exports = async function handler(req, res) {
       return res.json({
         reply:
           "Dạ mình xin phép thông tin rõ ạ 🙏\n\n" +
-          "🤖 Đây là **chatbot tư vấn tự động**, không xử lý huỷ tour trực tiếp.\n\n" +
+          "🤖 Đây là chatbot tư vấn tự động, không xử lý huỷ tour trực tiếp.\n\n" +
           "👉 Để huỷ tour hoặc thay đổi lịch, anh/chị vui lòng liên hệ trực tiếp:\n" +
           "📞 Zalo: https://zalo.me/0774546748\n" +
           "📘 Facebook: https://www.facebook.com/pm.trogn\n\n" +
@@ -40,7 +40,7 @@ module.exports = async function handler(req, res) {
         reply:
           "Chào anh/chị 👋\n" +
           "Mình là chatbot tư vấn tour Rừng Dừa Bảy Mẫu.\n" +
-          "Anh/chị cho mình biết **ngày đi và số người** để mình tư vấn chi tiết nhé."
+          "Anh/chị cho mình biết ngày đi và số người** để mình tư vấn chi tiết nhé."
       });
     }
 
@@ -52,9 +52,9 @@ module.exports = async function handler(req, res) {
       return res.json({
         reply:
           "Dạ mình xin thông tin rõ với anh/chị ạ 🙏\n\n" +
-          "🤖 Đây là **chatbot tư vấn**, chỉ hỗ trợ:\n" +
+          "🤖 Đây là chatbot tư vấn, chỉ hỗ trợ:\n" +
           "• Thông tin tour\n• Giá tham khảo\n• Chính sách đặt & huỷ\n• Chính sách bảo mật\n\n" +
-          "❗ Bot **KHÔNG có chức năng đặt tour hoặc giữ chỗ**.\n\n" +
+          "❗ Bot KHÔNG có chức năng đặt tour hoặc giữ chỗ.\n\n" +
           "👉 Để đặt tour chính thức, anh/chị vui lòng:\n" +
           "🔹 Điền form đăng ký trên website\n" +
           "🔹 Hoặc liên hệ trực tiếp:\n" +
